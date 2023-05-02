@@ -5,7 +5,7 @@
   "main": "server.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon src/server.ts",
+    "dev": "nodemon src/server.ts",
     "start": "PORT=8000 ts-node src/server.ts"
   },
   "keywords": [],
