@@ -1,5 +1,5 @@
 import { Handler } from 'express';
-import planets from '../../models/planets.model';
+import { planets } from '../../models/planets.model';
 
 export function getAllPlanets(
   ...[req, res]: Parameters<Handler>
