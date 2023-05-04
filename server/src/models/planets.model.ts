@@ -91,4 +91,6 @@ export function loadPlanetsData() {
   });
 }
 
-export { habitablePlanets as planets };
+export function getAllPlanets(): Planet[] {
+  return habitablePlanets;
+}

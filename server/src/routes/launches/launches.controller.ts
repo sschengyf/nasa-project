@@ -1,8 +1,8 @@
 import { Handler } from 'express';
-import { launches } from '../../models/launches.model';
+import { getAllLaunches } from '../../models/launches.model';
 
-export function getAllLaunches(
+export function httpGetAllLaunches(
   ...[req, res]: Parameters<Handler>
 ): ReturnType<Handler> {
-  res.status(200).json(Array.from(launches.values()));
+  res.status(200).json(getAllLaunches());
 }
