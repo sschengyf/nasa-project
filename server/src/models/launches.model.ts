@@ -9,9 +9,14 @@ export type Launch = {
   success: boolean;
 };
 
+export type NewLaunch = Pick<
+  Launch,
+  'mission' | 'rocket' | 'launchDate' | 'destination'
+>;
+
 const launches = new Map<number, Launch>();
 
-const launch: Launch = {
+const defaultLaunch: Launch = {
   flightNumber: 100,
   mission: 'Kepler Exploration X',
   rocket: 'Explorer IS1',
@@ -22,8 +27,27 @@ const launch: Launch = {
   success: true,
 };
 
-launches.set(launch.flightNumber, launch);
+launches.set(defaultLaunch.flightNumber, defaultLaunch);
 
 export function getAllLaunches(): Launch[] {
   return Array.from(launches.values());
+}
+
+export function addNewLaunch(launch: NewLaunch) {
+  const flightNumbers = launches.keys();
+  const descFlightNumbers = Array.from(flightNumbers).sort((a, b) => b - a);
+  const lastFlightNumber = descFlightNumbers[0];
+  const newFlightNumber = lastFlightNumber + 1;
+
+  launches.set(newFlightNumber, {
+    ...launch,
+    ...{
+      flightNumber: newFlightNumber,
+      success: true,
+      upcoming: true,
+      customer: ['ZTM', 'NASA'],
+    },
+  });
+
+  return launches.get(newFlightNumber);
 }
