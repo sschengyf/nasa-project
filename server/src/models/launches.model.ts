@@ -51,3 +51,18 @@ export function addNewLaunch(launch: NewLaunchData) {
 
   return launches.get(newFlightNumber);
 }
+
+export function doesLaunchExistWithId(launchId: number) {
+  return launches.has(launchId);
+}
+
+export function abortLaunchById(launchId: number) {
+  const launch = launches.get(launchId);
+  launch &&
+    launches.set(launchId, {
+      ...launch,
+      ...{ upcoming: false, success: false },
+    });
+
+  return launches.get(launchId);
+}
