@@ -20,8 +20,8 @@ export const httpAddNewLaunch: Handler = function (
   res
 ) {
   const newLaunchData = req.body;
-  const { mission, rocket, launchDate, destination } = newLaunchData;
-  if (!mission || !rocket || !launchDate || !destination) {
+  const { mission, rocket, launchDate, target } = newLaunchData;
+  if (!mission || !rocket || !launchDate || !target) {
     return res.status(400).json({
       error: 'Missing required launch property.',
     });
