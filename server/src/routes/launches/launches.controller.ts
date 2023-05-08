@@ -1,5 +1,13 @@
-import { Handler } from 'express';
-import { getAllLaunches, addNewLaunch } from '../../models/launches.model';
+import { Handler, Request, Response } from 'express';
+import {
+  getAllLaunches,
+  addNewLaunch,
+  NewLaunchData,
+} from '../../models/launches.model';
+
+export interface RequestBody<T> extends Request {
+  body: T;
+}
 
 export function httpGetAllLaunches(
   ...[req, res]: Parameters<Handler>
@@ -7,14 +15,29 @@ export function httpGetAllLaunches(
   res.status(200).json(getAllLaunches());
 }
 
-export function httpAddNewLaunch(
-  ...[req, res]: Parameters<Handler>
-): ReturnType<Handler> {
+export const httpAddNewLaunch: Handler = function (
+  req: RequestBody<NewLaunchData & { launchDate: string }>,
+  res
+) {
   const newLaunchData = req.body;
+  const { mission, rocket, launchDate, destination } = newLaunchData;
+  if (!mission || !rocket || !launchDate || !destination) {
+    return res.status(400).json({
+      error: 'Missing required launch property.',
+    });
+  }
+
+  const launchDateObj = new Date(newLaunchData.launchDate);
+  if (isNaN(launchDateObj.valueOf())) {
+    return res.status(400).json({
+      error: 'Invalid launch date',
+    });
+  }
+
   const newLaunch = addNewLaunch({
     ...newLaunchData,
-    ...{ launchDate: new Date(newLaunchData.launchDate) },
+    ...{ launchDate: launchDateObj },
   });
 
   res.status(201).json(newLaunch);
-}
+};

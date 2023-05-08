@@ -9,7 +9,7 @@ export type Launch = {
   success: boolean;
 };
 
-export type NewLaunch = Pick<
+export type NewLaunchData = Pick<
   Launch,
   'mission' | 'rocket' | 'launchDate' | 'destination'
 >;
@@ -33,7 +33,7 @@ export function getAllLaunches(): Launch[] {
   return Array.from(launches.values());
 }
 
-export function addNewLaunch(launch: NewLaunch) {
+export function addNewLaunch(launch: NewLaunchData) {
   const flightNumbers = launches.keys();
   const descFlightNumbers = Array.from(flightNumbers).sort((a, b) => b - a);
   const lastFlightNumber = descFlightNumbers[0];
