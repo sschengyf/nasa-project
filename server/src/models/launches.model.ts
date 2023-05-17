@@ -1,4 +1,5 @@
-import { Launch } from './launches.mongo';
+import launchesDB, { Launch } from './launches.mongo';
+import planets from './planets.mongo';
 
 export type NewLaunchData = Pick<
   Launch,
@@ -20,8 +21,32 @@ const defaultLaunch: Launch = {
 
 launches.set(defaultLaunch.flightNumber, defaultLaunch);
 
-export function getAllLaunches(): Launch[] {
-  return Array.from(launches.values());
+export async function getAllLaunches() {
+  return await launchesDB.find(
+    {},
+    {
+      __v: 0,
+      _id: 0,
+    }
+  );
+}
+
+export async function saveLaunch(launch: Launch) {
+  const planet = await planets.findOne({
+    keplerName: launch.target,
+  });
+
+  if (!planet) {
+    throw new Error('No accordingly planet found.');
+  }
+
+  await launchesDB.updateOne(
+    {
+      flightNumber: launch.flightNumber,
+    },
+    launch,
+    { upsert: true }
+  );
 }
 
 export function addNewLaunch(launch: NewLaunchData) {

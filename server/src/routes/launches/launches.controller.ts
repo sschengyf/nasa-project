@@ -11,10 +11,8 @@ export interface RequestBody<T> extends Request {
   body: T;
 }
 
-export function httpGetAllLaunches(
-  ...[req, res]: Parameters<Handler>
-): ReturnType<Handler> {
-  res.status(200).json(getAllLaunches());
+export async function httpGetAllLaunches(...[req, res]: Parameters<Handler>) {
+  return res.status(200).json(await getAllLaunches());
 }
 
 export const httpAddNewLaunch: Handler = (
