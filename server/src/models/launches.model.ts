@@ -1,13 +1,4 @@
-export type Launch = {
-  flightNumber: number;
-  mission: string;
-  rocket: string;
-  launchDate: Date;
-  target: string;
-  customer: string[];
-  upcoming: boolean;
-  success: boolean;
-};
+import { Launch } from './launches.mongo';
 
 export type NewLaunchData = Pick<
   Launch,

@@ -1,8 +1,9 @@
 import fs from 'fs';
 import path from 'path';
 import { parse } from 'csv-parse';
+import planets from './planets.mongo';
 
-export type Planet = {
+export type CsvPlanet = {
   kepid: number;
   kepoi_name: string;
   kepler_name: string;
@@ -54,9 +55,7 @@ export type Planet = {
   koi_kepmag: number;
 };
 
-const habitablePlanets: Planet[] = [];
-
-function isHabitablePlanet(planet: Planet) {
+function isHabitablePlanet(planet: CsvPlanet) {
   return (
     planet['koi_disposition'] === 'CONFIRMED' &&
     planet['koi_insol'] > 0.36 &&
@@ -78,19 +77,32 @@ export function loadPlanetsData() {
       )
       .on('data', (data) => {
         if (isHabitablePlanet(data)) {
-          habitablePlanets.push(data);
+          savePlanet(data);
         }
       })
       .on('error', (err) => {
         reject(err);
       })
-      .on('end', () => {
-        resolve();
+      .on('end', async () => {
+        const habitablePlanets = await getAllPlanets();
         console.log(`${habitablePlanets.length} habitable planets found!`);
+        resolve();
       });
   });
 }
 
-export function getAllPlanets(): Planet[] {
-  return habitablePlanets;
+async function savePlanet(planet: CsvPlanet) {
+  try {
+    await planets.updateOne(
+      { keplerName: planet.kepler_name },
+      { keplerName: planet.kepler_name },
+      { upsert: true }
+    );
+  } catch (err) {
+    console.error(`Something went wrong when save planet ${err}`);
+  }
+}
+
+export async function getAllPlanets() {
+  return await planets.find({});
 }
