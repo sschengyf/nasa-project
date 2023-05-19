@@ -1,7 +1,7 @@
 import { Handler, Request } from 'express';
 import {
   getAllLaunches,
-  addNewLaunch,
+  scheduleNewLaunch,
   doesLaunchExistWithId,
   abortLaunchById,
   NewLaunchData,
@@ -15,7 +15,7 @@ export async function httpGetAllLaunches(...[req, res]: Parameters<Handler>) {
   return res.status(200).json(await getAllLaunches());
 }
 
-export const httpAddNewLaunch: Handler = (
+export const httpAddNewLaunch: Handler = async (
   req: RequestBody<NewLaunchData & { launchDate: string }>,
   res
 ) => {
@@ -34,7 +34,7 @@ export const httpAddNewLaunch: Handler = (
     });
   }
 
-  const newLaunch = addNewLaunch({
+  const newLaunch = await scheduleNewLaunch({
     ...newLaunchData,
     ...{ launchDate: launchDateObj },
   });
@@ -42,14 +42,25 @@ export const httpAddNewLaunch: Handler = (
   res.status(201).json(newLaunch);
 };
 
-export const httpAbortLaunch: Handler = (req, res) => {
+export const httpAbortLaunch: Handler = async (req, res) => {
   const launchId = Number(req.params.id);
+  const launchExists = await doesLaunchExistWithId(launchId);
 
-  if (!doesLaunchExistWithId(launchId)) {
+  if (!launchExists) {
     return res.status(404).json({
       error: 'Launch not found.',
     });
   }
 
-  return res.status(200).json(abortLaunchById(launchId));
+  const aborted = await abortLaunchById(launchId);
+
+  if (!aborted) {
+    return res.status(400).json({
+      error: 'Launch not aborted.',
+    });
+  }
+
+  return res.status(200).json({
+    ok: true,
+  });
 };
