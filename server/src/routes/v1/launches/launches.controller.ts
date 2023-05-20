@@ -5,7 +5,7 @@ import {
   doesLaunchExistWithId,
   abortLaunchById,
   NewLaunchData,
-} from '../../models/launches.model';
+} from '../../../models/launches.model';
 
 export interface RequestBody<T> extends Request {
   body: T;
