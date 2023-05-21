@@ -6,14 +6,19 @@ import {
   abortLaunchById,
   NewLaunchData,
 } from '../../../models/launches.model';
+import { getPagination } from '../../../services/query';
 
 export interface RequestBody<T> extends Request {
   body: T;
 }
 
-export async function httpGetAllLaunches(...[req, res]: Parameters<Handler>) {
-  return res.status(200).json(await getAllLaunches());
-}
+export const httpGetAllLaunches: Handler = async (req, res) => {
+  const { skip, limit } = getPagination(
+    req.query as unknown as { limit: number; page: number }
+  );
+  const launches = await getAllLaunches(skip, limit);
+  return res.status(200).json(launches);
+};
 
 export const httpAddNewLaunch: Handler = async (
   req: RequestBody<NewLaunchData & { launchDate: string }>,

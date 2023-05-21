@@ -10,14 +10,17 @@ export type NewLaunchData = Pick<
 
 const DEFAULT_FLIGHT_NUMBER = 100;
 
-export async function getAllLaunches() {
-  return await launches.find(
-    {},
-    {
-      __v: 0,
-      _id: 0,
-    }
-  );
+export async function getAllLaunches(skip: number, limit: number) {
+  return await launches
+    .find(
+      {},
+      {
+        __v: 0,
+        _id: 0,
+      }
+    )
+    .skip(skip)
+    .limit(limit);
 }
 
 export async function saveLaunch(launch: Launch) {
