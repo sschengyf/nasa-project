@@ -1,5 +1,7 @@
+import axios from 'axios';
 import launches, { Launch } from './launches.mongo';
 import planets from './planets.mongo';
+import { LaunchDoc } from './launch';
 
 export type NewLaunchData = Pick<
   Launch,
@@ -19,14 +21,6 @@ export async function getAllLaunches() {
 }
 
 export async function saveLaunch(launch: Launch) {
-  const planet = await planets.findOne({
-    keplerName: launch.target,
-  });
-
-  if (!planet) {
-    throw new Error('No accordingly planet found.');
-  }
-
   return await launches.findOneAndUpdate(
     {
       flightNumber: launch.flightNumber,
@@ -37,6 +31,14 @@ export async function saveLaunch(launch: Launch) {
 }
 
 export async function scheduleNewLaunch(launch: NewLaunchData) {
+  const planet = await planets.findOne({
+    keplerName: launch.target,
+  });
+
+  if (!planet) {
+    throw new Error('No accordingly planet found.');
+  }
+
   const newFlightNumber = (await getLatestFlightNumber()) + 1;
 
   const newLaunch = {
@@ -54,8 +56,12 @@ export async function scheduleNewLaunch(launch: NewLaunchData) {
   return newLaunch;
 }
 
+async function findLaunch(filter: Record<string, unknown>) {
+  return await launches.findOne(filter);
+}
+
 export async function doesLaunchExistWithId(launchId: number) {
-  return await !!launches.findOne({ flightNumber: launchId });
+  return await !!findLaunch({ flightNumber: launchId });
 }
 
 async function getLatestFlightNumber() {
@@ -73,4 +79,79 @@ export async function abortLaunchById(launchId: number) {
   );
 
   return aborted.modifiedCount === 1;
+}
+
+const SPACEX_API_LAUNCHES_QUERY_URL =
+  'https://api.spacexdata.com/v4/launches/query';
+
+export async function loadLaunchData() {
+  const spaceXLaunch = await findLaunch({
+    flightNumber: 1,
+    rocket: 'Falcon 1',
+    mission: 'FalconSat',
+  });
+
+  if (!!spaceXLaunch) {
+    console.log('Launch data already loaded.');
+    return;
+  }
+
+  console.log('Loading SpaceX launch data...');
+
+  const response = await axios.post<{ docs: LaunchDoc[] }>(
+    SPACEX_API_LAUNCHES_QUERY_URL,
+    {
+      query: {},
+      options: {
+        pagination: false,
+        populate: [
+          {
+            path: 'rocket',
+            select: {
+              name: 1,
+            },
+          },
+          {
+            path: 'payloads',
+            select: {
+              customers: 1,
+            },
+          },
+        ],
+      },
+    }
+  );
+
+  if (response.status !== 200) {
+    console.log('Something went wrong when load SpaceX launch data.');
+    throw new Error('Failed to load SpaceX launch data.');
+  }
+
+  const launchDocs = response.data.docs;
+  for (const {
+    payloads,
+    flight_number,
+    name,
+    rocket,
+    date_local,
+    upcoming,
+    success,
+  } of launchDocs) {
+    const customers = payloads.flatMap((payload) => payload['customers']);
+
+    const launch: Launch = {
+      flightNumber: flight_number,
+      mission: name,
+      rocket: rocket.name,
+      launchDate: date_local,
+      upcoming,
+      success,
+      customer: customers,
+      target: '',
+    };
+
+    console.log(`${launch.flightNumber} ${launch.mission}`);
+
+    saveLaunch(launch);
+  }
 }
