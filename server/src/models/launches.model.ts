@@ -19,6 +19,7 @@ export async function getAllLaunches(skip: number, limit: number) {
         _id: 0,
       }
     )
+    .sort({ flightNumber: 1 })
     .skip(skip)
     .limit(limit);
 }
